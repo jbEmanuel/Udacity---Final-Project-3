@@ -23,6 +23,10 @@ class Features(BaseModel):
 # Instantiate the app.
 app = FastAPI()
 
+# Load the model 
+pickle_in = open("/model/rfc_model.pkl","rb")
+classifier=pickle.load(pickle_in)
+
 # Define a GET on the specified endpoint.
 @app.get("/")
 async def say_hello():
