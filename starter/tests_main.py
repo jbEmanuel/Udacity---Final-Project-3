@@ -12,7 +12,7 @@ def test_get_root():
     assert r.status_code == 200
     print(r.status_code)
     
-def test_post():
+def test_post_status_code():
     data = json.dumps({
       "fnlgt": 122,
       "age": 25,
@@ -30,6 +30,4 @@ def test_post():
 if __name__=="__main__":
   test_get_root()
   test_post()
-  
-
     

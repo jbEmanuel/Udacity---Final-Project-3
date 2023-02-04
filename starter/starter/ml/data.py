@@ -1,5 +1,75 @@
 import numpy as np
-from sklearn.preprocessing import LabelBinarizer, OneHotEncoder
+import pandas as pd 
+from sklearn.preprocessing import LabelBinarizer
+from feature_engine.encoding import OneHotEncoder
+
+
+def eliminate_space_and_dash(df, x, y):
+  """ This function has the purpose of eliminating space and undesirable signs in the columns names 
+ 
+ Inputs 
+ -----------
+ df: pd.DataFrame 
+ dataframe with the columns
+ x: [str] 
+ character or spaces to be eliminated, e.g, ("-")
+ y: [str] 
+ new charater or absence of space that will replace x 
+ 
+ Returns
+ ----------
+ df.columns: dataframe columns transformed
+
+ """  
+
+  columns = [col.replace(x, y) for col in list(df.columns)]
+  df.columns = columns
+  return df.columns 
+ 
+def separate_cat_int_var(df):
+    """ This function receives a dataframe and returns the list of all categoricall and integert features separated 
+ 
+ Inputs 
+ -----------
+ df: pd.DataFrame 
+
+ Returns
+ ----------
+ categorical_features: list
+ list containing all categorical features
+ integer_features: list
+  list containing all integer features
+
+    """
+    categorical_features = []
+    integer_features = []
+    for var in list(df.columns):
+        if df[var].dtype == "int64":
+            integer_features.append(var)
+        else:
+            categorical_features.append(var)
+  
+    return categorical_features, integer_features
+
+def replace_spaces_in_categ_column(df, categorical_features):
+  """ 
+  This function receives a dataframe and returns the list of all categoricall and integert features separated 
+ 
+ Inputs 
+ -----------
+ df: pd.DataFrame 
+ categorical_features: list 
+ list of categorical features
+ 
+ Returns
+ ----------
+ df: pd.DataFrame 
+ 
+  """
+  for var in categorical_features:
+    df[var] = df[var].str.replace(" ", "")
+    df[var] = df[var].str.replace("-", "_")
+  return df 
 
 
 def process_data(
@@ -32,11 +102,11 @@ def process_data(
 
     Returns
     -------
-    X : np.array
+    X : pd.Dataframe
         Processed data.
     y : np.array
         Processed labels if labeled=True, otherwise empty np.array.
-    encoder : sklearn.preprocessing._encoders.OneHotEncoder
+    encoder : feature_engine.encoding.OneHotEncoder
         Trained OneHotEncoder if training is True, otherwise returns the encoder passed
         in.
     lb : sklearn.preprocessing._label.LabelBinarizer
@@ -50,11 +120,14 @@ def process_data(
     else:
         y = np.array([])
 
-    X_categorical = X[categorical_features].values
+    X_categorical = X[categorical_features]
     X_continuous = X.drop(*[categorical_features], axis=1)
 
     if training is True:
-        encoder = OneHotEncoder(sparse=False, handle_unknown="ignore")
+        encoder = OneHotEncoder(
+                    top_categories=None,
+                    variables=categorical_features,  # we can select which variables to encode
+                    drop_last=True)  # to return k-1, false to return k
         lb = LabelBinarizer()
         X_categorical = encoder.fit_transform(X_categorical)
         y = lb.fit_transform(y.values).ravel()
@@ -65,6 +138,7 @@ def process_data(
         # Catch the case where y is None because we're doing inference.
         except AttributeError:
             pass
-
-    X = np.concatenate([X_continuous, X_categorical], axis=1)
+    
+    X = pd.concat([X_categorical.reset_index(drop=True), X_continuous.reset_index(drop=True)], axis=1, ignore_index=True)
+    X.columns = X_categorical.columns + X_continuous.columns
     return X, y, encoder, lb
