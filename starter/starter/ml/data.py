@@ -126,8 +126,7 @@ def process_data(
     if training is True:
         encoder = OneHotEncoder(
                     top_categories=None,
-                    variables=categorical_features,  # we can select which variables to encode
-                    drop_last=True)  # to return k-1, false to return k
+                    variables=categorical_features,drop_last=True)  # to return k-1, false to return k
         lb = LabelBinarizer()
         X_categorical = encoder.fit_transform(X_categorical)
         y = lb.fit_transform(y.values).ravel()
