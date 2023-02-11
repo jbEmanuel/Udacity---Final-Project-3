@@ -49,7 +49,7 @@ def separate_cat_int_var(df):
         else:
             categorical_features.append(var)
   
-    return categorical_features, integer_features
+    return categorical_features.remove('salary'), integer_features
 
 def replace_spaces_in_categ_column(df, categorical_features):
   """ 
