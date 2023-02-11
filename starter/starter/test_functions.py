@@ -2,6 +2,7 @@ from ml.data import separate_cat_int_var
 from sklearn.model_selection import train_test_split
 from ml.data import process_data
 import pandas as pd
+import loging
 import pytest
 
 logging.basicConfig(
