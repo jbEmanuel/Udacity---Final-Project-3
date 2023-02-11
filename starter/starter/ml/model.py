@@ -75,7 +75,11 @@ def inference(model, X):
 
 def save_model(model):
     """ 
-      
+      Saves model in folder model
+
+      Inputs
+      -----------
+      model: The Random Forrest Model used to train the data
     
     """
     pickle.dump(model, open('./model/model.pkl', 'wb'))
