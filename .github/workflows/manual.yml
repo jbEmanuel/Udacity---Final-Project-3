@@ -1,46 +1,26 @@
-# Workflow to ensure whenever a Github PR is submitted, 
-# a JIRA ticket gets created automatically. 
-name: Manual Workflow
+name: Python package # Name of the Action.
 
-# Controls when the action will run. 
-on:
-  # Triggers the workflow on pull request events but only for the master branch
-  pull_request_target:
-    types: [opened, reopened]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+on: [push] # When this action runs.
 
 jobs:
-  test-transition-issue:
-    name: Convert Github Issue to Jira Issue
-    runs-on: ubuntu-latest
+  build:
+
+    runs-on: ubuntu-latest # Which OS this runs on, you can also build on Windows or MacOS.
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8] # You can build against multiple Python versions.
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@master
-
-    - name: Login
-      uses: atlassian/gajira-login@master
-      env:
-        JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-        JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
-        JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-        
-    - name: Create NEW JIRA ticket
-      id: create
-      uses: atlassian/gajira-create@master
+    - uses: actions/checkout@v2 # Calling a pre-built GitHub Action which allows your Action to access your repository.
+    - name: Set up Python ${{ matrix.python-version }} # Name of an action that sets up Python.
+      uses: actions/setup-python@v2 # A pre-built GitHub Action that sets up a Python environment.
       with:
-        project: CONUPDATE
-        issuetype: Task
-        summary: |
-          Github PR | Repo: ${{ github.repository }}  | PR# ${{github.event.number}}
-        description: |
-           Repo link: https://github.com/${{ github.repository }}   
-           PR no. ${{ github.event.pull_request.number }} 
-           PR title: ${{ github.event.pull_request.title }}  
-           PR description: ${{ github.event.pull_request.description }}  
-           In addition, please resolve other issues, if any. 
-        fields: '{"components": [{"name":"nd0821 - ML DevOpsEngineer ND"}], "customfield_16449":"https://classroom.udacity.com/", "customfield_16450":"Resolve the PR", "labels": ["github"], "priority":{"id": "4"}}'
-
-    - name: Log created issue
-      run: echo "Issue ${{ steps.create.outputs.issue }} was created"
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies # The first step that isn't just calling another action.
+      run: |
+        python -m pip install --upgrade pip # Upgrade pip to the latest version.
+        pip install pytest # Install pytest.
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi # If we have a requirements.txt, then install it.
+    - name: Test with pytest # Final action which runs pytest. If any test fails, then this Action fails.
+      run: |
+        pytest
