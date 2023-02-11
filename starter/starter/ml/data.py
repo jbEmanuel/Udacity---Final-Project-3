@@ -73,7 +73,7 @@ def replace_spaces_in_categ_column(df, categorical_features):
 
 
 def process_data(
-    X, categorical_features=[], label=None, training=True, encoder=None, lb=None
+    X, categorical_features=[],integer_features=[], label=None, training=True, encoder=None, lb=None
 ):
     """ Process the data used in the machine learning pipeline.
 
@@ -90,6 +90,8 @@ def process_data(
         Dataframe containing the features and label. Columns in `categorical_features`
     categorical_features: list[str]
         List containing the names of the categorical features (default=[])
+    integer_features: list[str]
+        List containing the names of the integer features (default=[])
     label : str
         Name of the label column in `X`. If None, then an empty array will be returned
         for y (default=None)
@@ -119,9 +121,9 @@ def process_data(
         X = X.drop([label], axis=1)
     else:
         y = np.array([])
-
+    
     X_categorical = X[categorical_features]
-    X_continuous = X.drop(*[categorical_features], axis=1)
+    X_continuous = X[integer_features]
 
     if training is True:
         encoder = OneHotEncoder(
@@ -139,5 +141,7 @@ def process_data(
             pass
     
     X = pd.concat([X_categorical.reset_index(drop=True), X_continuous.reset_index(drop=True)], axis=1, ignore_index=True)
-    X.columns = X_categorical.columns + X_continuous.columns
+    X.columns = list(X_categorical.columns) + list(X_continuous.columns)
+
+    
     return X, y, encoder, lb
