@@ -49,7 +49,7 @@ def separate_cat_int_var(df):
         else:
             categorical_features.append(var)
   
-    return categorical_features, integer_features
+    return categorical_features.remove('salary'), integer_features
 
 def replace_spaces_in_categ_column(df, categorical_features):
   """ 
@@ -90,6 +90,8 @@ def process_data(
         Dataframe containing the features and label. Columns in `categorical_features`
     categorical_features: list[str]
         List containing the names of the categorical features (default=[])
+    integer_features: list[str]
+        List containing the names of the integer features (default=[])
     label : str
         Name of the label column in `X`. If None, then an empty array will be returned
         for y (default=None)
